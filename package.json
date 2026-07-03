@@ -60,7 +60,7 @@
   },
   "dependencies": {
     "@google-analytics/admin": "^9.0.1",
-    "@google-analytics/data": "^5.2.1",
+    "@google-analytics/data": "^6.1.0",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "boxen": "^8.0.1",
     "chalk": "^5.3.0",
