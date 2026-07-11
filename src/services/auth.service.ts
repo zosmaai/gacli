@@ -2,17 +2,22 @@ import { GoogleAuth, OAuth2Client } from 'google-auth-library';
 import { getConfig } from './config.service.js';
 import { loadOAuthTokens, saveOAuthTokens } from './oauth.service.js';
 
-// Patch OAuth2Client.getRequestHeaders to return a Headers object.
-// google-gax 5.x calls getRequestHeaders() and expects the result to have
-// .forEach() (i.e. a Headers or Headers-like object). The plain object
-// returned by google-auth-library does not have .forEach().
+// Patch: google-gax 5.x expects getRequestHeaders() result to have .forEach().
+// google-auth-library returns a plain Record<string, string> that lacks .forEach().
+// We attach a non-enumerable .forEach() to the plain object so callers using
+// index-access AND .forEach() both work without type issues.
 const originalGetRequestHeaders = OAuth2Client.prototype.getRequestHeaders;
 OAuth2Client.prototype.getRequestHeaders = async function (
   this: OAuth2Client,
   url?: string,
 ) {
   const headers = await originalGetRequestHeaders.call(this, url);
-  return new Headers(headers as Record<string, string>);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const wrapped = headers as any;
+  wrapped.forEach = function (callback: (value: string, key: string) => void) {
+    for (const k of Object.keys(wrapped)) callback(wrapped[k], k);
+  };
+  return wrapped;
 };
 
 export const GA4_SCOPES = [
