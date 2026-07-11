@@ -2,6 +2,19 @@ import { GoogleAuth, OAuth2Client } from 'google-auth-library';
 import { getConfig } from './config.service.js';
 import { loadOAuthTokens, saveOAuthTokens } from './oauth.service.js';
 
+// Patch OAuth2Client.getRequestHeaders to return a Headers object.
+// google-gax 5.x calls getRequestHeaders() and expects the result to have
+// .forEach() (i.e. a Headers or Headers-like object). The plain object
+// returned by google-auth-library does not have .forEach().
+const originalGetRequestHeaders = OAuth2Client.prototype.getRequestHeaders;
+OAuth2Client.prototype.getRequestHeaders = async function (
+  this: OAuth2Client,
+  url?: string,
+) {
+  const headers = await originalGetRequestHeaders.call(this, url);
+  return new Headers(headers as Record<string, string>);
+};
+
 export const GA4_SCOPES = [
   'https://www.googleapis.com/auth/analytics.readonly',
   'https://www.googleapis.com/auth/analytics.edit',
