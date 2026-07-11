@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { formatOutput } from '../../formatters/index.js';
-import { listAudienceExports } from '../../services/data-api.service.js';
+import { listAudienceExports, type IAudienceExport } from '../../services/data-api.service.js';
 import { type ReportData, resolveGlobalOptions, writeOutput } from '../../types/common.js';
 import { handleError } from '../../utils/error-handler.js';
 import { createSpinner } from '../../utils/spinner.js';
@@ -23,12 +23,12 @@ export function createExportListCommand(): Command {
 
         const data: ReportData = {
           headers: ['Name', 'Audience', 'State', 'Row Count', 'Begin Creating Time'],
-          rows: exports.map((exp: unknown) => [
+          rows: exports.map((exp: IAudienceExport) => [
             exp.name ?? '',
             exp.audience ?? '',
-            exp.state ?? '',
+            String(exp.state ?? ''),
             String(exp.rowCount ?? ''),
-            exp.beginCreatingTime ?? '',
+            String(exp.beginCreatingTime ?? ''),
           ]),
           rowCount: exports.length,
         };

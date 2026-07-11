@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { formatOutput } from '../../formatters/index.js';
-import { listRecurringAudienceLists } from '../../services/data-api.service.js';
+import { listRecurringAudienceLists, type IRecurringAudienceList } from '../../services/data-api.service.js';
 import { type ReportData, resolveGlobalOptions, writeOutput } from '../../types/common.js';
 import { handleError } from '../../utils/error-handler.js';
 import { createSpinner } from '../../utils/spinner.js';
@@ -23,7 +23,7 @@ export function createRecurringListCommand(): Command {
 
         const data: ReportData = {
           headers: ['Name', 'Audience', 'State'],
-          rows: lists.map((item: unknown) => [item.name ?? '', item.audience ?? '', item.state ?? '']),
+          rows: lists.map((item: IRecurringAudienceList) => [item.name ?? '', item.audience ?? '', 'Unknown']),
           rowCount: lists.length,
         };
 

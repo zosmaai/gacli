@@ -23,8 +23,8 @@ type IBatchRunReportsResponse = protos.google.analytics.data.v1beta.IBatchRunRep
 type IBatchRunPivotReportsResponse = protos.google.analytics.data.v1beta.IBatchRunPivotReportsResponse;
 type ICheckCompatibilityResponse = protos.google.analytics.data.v1beta.ICheckCompatibilityResponse;
 type IMetadata = protos.google.analytics.data.v1beta.IMetadata;
-type IAudienceExport = protos.google.analytics.data.v1beta.IAudienceExport;
-type IRecurringAudienceList = protos.google.analytics.data.v1alpha.IRecurringAudienceList;
+export type IAudienceExport = protos.google.analytics.data.v1beta.IAudienceExport;
+export type IRecurringAudienceList = protos.google.analytics.data.v1alpha.IRecurringAudienceList;
 type IRunFunnelReportRequest = protos.google.analytics.data.v1alpha.IRunFunnelReportRequest;
 type IRunFunnelReportResponse = protos.google.analytics.data.v1alpha.IRunFunnelReportResponse;
 
