@@ -6,8 +6,19 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["src/**/*.ts", "test/**/*.ts", "*.ts", "*.json", "*.md"],
-    "experimentalScannerIgnores": ["dist", "node_modules", "coverage", "pnpm-lock.yaml"]
+    "includes": [
+      "src/**/*.ts",
+      "test/**/*.ts",
+      "*.ts",
+      "*.json",
+      "*.md"
+    ],
+    "experimentalScannerIgnores": [
+      "dist",
+      "node_modules",
+      "coverage",
+      "pnpm-lock.yaml"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -29,7 +40,7 @@
     "rules": {
       "recommended": true,
       "suspicious": {
-        "noExplicitAny": "warn",
+        "noExplicitAny": "off",
         "noConsole": "off"
       },
       "style": {

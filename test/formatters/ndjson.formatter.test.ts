@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import { formatNdjson } from '../../src/formatters/ndjson.formatter.js';
-import type { ReportData } from '../../src/types/common.js';
 
 describe('formatNdjson', () => {
   it('emits one JSON object per row, newline-separated, trailing newline', () => {
