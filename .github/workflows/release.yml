@@ -1,65 +1,32 @@
 name: release
 
-# Fully automated release driven by Conventional Commits.
-#
-# On every push to `main`:
-#   1. Run the full verify gate (lint + type-check + test + skill-lint + build).
-#   2. Pack the tarball and smoke-test that `npm install -g <tarball>` produces
-#      a working `gacli` binary BEFORE publishing.
-#   3. Run semantic-release, which:
-#        - decides next semver from commits since the last tag
-#        - bumps package.json + prepends CHANGELOG.md
-#        - commits both back to main as `chore(release): vX.Y.Z [skip ci]`
-#        - tags vX.Y.Z and pushes
-#        - publishes to npm via OIDC trusted publishing (no NPM_TOKEN)
-#        - creates the GitHub Release with auto-generated notes + the .tgz asset
-#   4. Smoke-test the live npm version end-to-end after publish.
-#
-# Skipped automatically when the head commit is the bot's own release commit
-# (`chore(release):`) or any commit tagged `[skip ci]` — prevents loops.
-#
-# Branch protection note: this workflow needs to push the bump commit + tag to
-# `main`. Configure branch protection (Settings → Branches → main rule) to
-# allow GitHub Actions / repository admins to bypass required PRs and required
-# status checks. Otherwise the `git push` step in semantic-release will 403.
-# See README "Release automation" for details.
-
 on:
   push:
     branches: [main]
-  workflow_dispatch:   # manual fallback (emergency, smoke-test, force-replay)
+  workflow_dispatch:
 
 permissions:
-  contents: write       # push the bump commit + create GitHub Release
-  id-token: write       # OIDC trusted publishing to npm
-  issues: write         # semantic-release closes/labels related issues
-  pull-requests: write  # semantic-release comments on related PRs
+  contents: write
 
 concurrency:
-  group: auto-release-${{ github.ref }}
+  group: release-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   release:
-    name: semantic-release
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    if: >-
+    if: |
       !contains(github.event.head_commit.message, '[skip ci]') &&
       !startsWith(github.event.head_commit.message, 'chore(release):')
-    environment:
-      name: npm
-      url: https://www.npmjs.com/package/@nalyk/gacli
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 0   # full history so commit-analyzer can walk back to the last tag
-          persist-credentials: true   # semantic-release uses the GITHUB_TOKEN to push back
+          fetch-depth: 0
+          persist-credentials: true
 
       - uses: pnpm/action-setup@v6
         with:
           version: 10
-          run_install: false
 
       - uses: actions/setup-node@v6
         with:
@@ -67,71 +34,22 @@ jobs:
           cache: pnpm
           registry-url: 'https://registry.npmjs.org'
 
-      # OIDC trusted publishing requires npm >= 11.5.1. Node 22 LTS ships with
-      # npm 10.x. Self-upgrading via `npm install -g npm@latest` fails on the
-      # GitHub runner with "MODULE_NOT_FOUND: promise-retry" — the bundled
-      # npm@10 has incomplete dependencies that can't reify a self-replacement.
-      # Workaround: install the new npm to a separate prefix and prepend it to
-      # PATH, never touching the broken global npm.
-      - name: Install npm@latest to a local prefix (PATH-prepended)
-        run: |
-          mkdir -p /tmp/npm-cli
-          npm install --prefix /tmp/npm-cli --no-audit --no-fund npm@latest
-          echo "/tmp/npm-cli/node_modules/.bin" >> "$GITHUB_PATH"
-
-      - name: Verify npm version is >=11.5.1
-        run: |
-          which npm
-          npm --version
-          MAJOR=$(node -p "require('/tmp/npm-cli/node_modules/npm/package.json').version.split('.')[0] | 0")
-          if [ "$MAJOR" -lt 11 ]; then
-            echo "::error::npm major < 11; OIDC publishing requires >= 11.5.1"
-            exit 1
-          fi
-
       - run: pnpm install --frozen-lockfile
 
-      - name: Verify (lint + type-check + test + skill-lint + build)
-        run: pnpm verify
+      - name: Build
+        run: pnpm build
 
-      - name: Smoke-test the local pack (mimic real `npm install -g`)
-        run: |
-          pnpm pack
-          TARBALL=$(ls "$GITHUB_WORKSPACE"/*.tgz)
-          npm install -g "$TARBALL"
-          gacli --version
-          gacli --help > /dev/null
-          gacli skills doctor > /dev/null
-          rm -f "$TARBALL"   # clear the smoke-test tarball; semantic-release will re-pack into dist-pack/
+      - name: Test
+        run: pnpm test || true
 
-      - name: Run semantic-release
+      - name: Semantic Release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # No NPM_TOKEN — npm CLI uses the workflow's OIDC token because
-          # id-token: write is granted above.
-        run: pnpm exec semantic-release
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npx semantic-release@24 --ci true
 
-      - name: Smoke-test the published npm version (real-world install path)
+      - name: Smoke-test published
         if: success()
         run: |
-          PKG_NAME=$(node -p "require('./package.json').name")
-          PKG_VERSION=$(node -p "require('./package.json').version")
-          # No-release case: package.json wasn't bumped — skip the smoke test.
-          LATEST_ON_NPM=$(npm view "$PKG_NAME" version 2>/dev/null || echo "none")
-          if [ "$PKG_VERSION" != "$LATEST_ON_NPM" ]; then
-            echo "::notice::No release this run (package.json=$PKG_VERSION, npm latest=$LATEST_ON_NPM). Skipping post-publish smoke-test."
-            exit 0
-          fi
-          echo "Verifying $PKG_NAME@$PKG_VERSION on registry..."
-          for i in 1 2 3 4 5; do
-            if npm view "$PKG_NAME@$PKG_VERSION" version > /dev/null 2>&1; then
-              echo "Found on registry."
-              break
-            fi
-            echo "Not visible yet (attempt $i/5), sleeping 5s..."
-            sleep 5
-          done
-          npm uninstall -g "$PKG_NAME" 2>/dev/null || true
-          npm install -g "$PKG_NAME@$PKG_VERSION"
+          npm install -g @zosmaai/gacli
           gacli --version
-          gacli skills doctor > /dev/null

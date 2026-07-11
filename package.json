@@ -1,10 +1,10 @@
 {
-  "name": "@nalyk/gacli",
+  "name": "@zosmaai/gacli",
   "version": "1.1.0",
-  "description": "Full-featured Google Analytics 4 CLI — Data API + Admin API, OAuth/SA auth, multiple output formats, MCP server. Ships native AI-assistant skill packages for Claude Code, Codex, Qwen, and Gemini CLIs.",
+  "description": "Full-featured Google Analytics 4 CLI \u2014 Data API + Admin API, OAuth/SA auth, multiple output formats, MCP server. Ships native AI-assistant skill packages for Claude Code, Codex, Qwen, and Gemini CLIs.",
   "type": "module",
   "license": "MIT",
-  "author": "Ion (Nalyk) Calmîș",
+  "author": "Ion (Nalyk) Calm\u00ee\u0219",
   "homepage": "https://opensource.yoda.digital/en/projects/gacli/",
   "repository": {
     "type": "git",
