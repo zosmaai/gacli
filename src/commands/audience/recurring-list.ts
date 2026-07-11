@@ -23,7 +23,7 @@ export function createRecurringListCommand(): Command {
 
         const data: ReportData = {
           headers: ['Name', 'Audience', 'State'],
-          rows: lists.map((item: any) => [item.name ?? '', item.audience ?? '', item.state ?? '']),
+          rows: lists.map((item: unknown) => [item.name ?? '', item.audience ?? '', item.state ?? '']),
           rowCount: lists.length,
         };
 

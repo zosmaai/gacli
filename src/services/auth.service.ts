@@ -7,10 +7,7 @@ import { loadOAuthTokens, saveOAuthTokens } from './oauth.service.js';
 // We attach a non-enumerable .forEach() so it's invisible to Object.keys/values
 // (prevents gRPC metadata serialization bugs) while still satisfying gax.
 const originalGetRequestHeaders = OAuth2Client.prototype.getRequestHeaders;
-OAuth2Client.prototype.getRequestHeaders = async function (
-  this: OAuth2Client,
-  url?: string,
-) {
+OAuth2Client.prototype.getRequestHeaders = async function (this: OAuth2Client, url?: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const headers: any = await originalGetRequestHeaders.call(this, url);
   Object.defineProperty(headers, 'forEach', {

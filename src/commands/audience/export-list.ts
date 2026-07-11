@@ -23,7 +23,7 @@ export function createExportListCommand(): Command {
 
         const data: ReportData = {
           headers: ['Name', 'Audience', 'State', 'Row Count', 'Begin Creating Time'],
-          rows: exports.map((exp: any) => [
+          rows: exports.map((exp: unknown) => [
             exp.name ?? '',
             exp.audience ?? '',
             exp.state ?? '',
