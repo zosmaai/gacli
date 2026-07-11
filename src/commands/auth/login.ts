@@ -62,9 +62,9 @@ async function runLogin(clientSecretFilePath?: string): Promise<void> {
     const { tokens } = await oauth2Client.getToken({ code, codeVerifier });
 
     saveOAuthTokens({
-      access_token: tokens.access_token!,
-      refresh_token: tokens.refresh_token!,
-      expiry_date: tokens.expiry_date!,
+      access_token: String(tokens.access_token),
+      refresh_token: String(tokens.refresh_token),
+      expiry_date: Number(tokens.expiry_date),
       token_type: tokens.token_type ?? 'Bearer',
       scope: tokens.scope ?? GA4_SCOPES.join(' '),
       client_id,
@@ -106,7 +106,7 @@ function startLoopbackServer(
     });
 
     const server = createServer((req, res) => {
-      const url = new URL(req.url!, `http://${req.headers.host}`);
+      const url = new URL(req.url ?? '', `http://${req.headers.host}`);
 
       if (url.pathname !== '/callback') {
         res.writeHead(404);
@@ -161,7 +161,12 @@ function startLoopbackServer(
       const port = addr.port;
       resolveStart({
         redirectUri: `http://127.0.0.1:${port}/callback`,
-        closeServer: { promise, resolve: resolveCode!, reject: rejectCode!, server },
+        closeServer: {
+          promise,
+          resolve: resolveCode ?? (() => {}),
+          reject: rejectCode ?? (() => {}),
+          server,
+        },
       });
     });
 

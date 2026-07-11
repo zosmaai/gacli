@@ -1,6 +1,6 @@
 import { Command } from 'commander';
 import { formatOutput } from '../../formatters/index.js';
-import { listAudienceExports, type IAudienceExport } from '../../services/data-api.service.js';
+import { type IAudienceExport, listAudienceExports } from '../../services/data-api.service.js';
 import { type ReportData, resolveGlobalOptions, writeOutput } from '../../types/common.js';
 import { handleError } from '../../utils/error-handler.js';
 import { createSpinner } from '../../utils/spinner.js';
